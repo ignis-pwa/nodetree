@@ -1,0 +1,108 @@
+<head>
+  <title>nodetree</title>
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles/default.css">
+</head>
+
+<body>
+  <!-- HEADER       -->
+  <header><span class="blue">node</span><span class="orange">tree</span></header>
+  <!-- TITLE BAR    -->
+  <nav>MySQL connections</nav>
+  <!-- FAB          -->
+  <div class="fab shadow shadow-hover"> + </div>
+  <!-- SESSION LIST -->
+  <div class="box-container"></div>
+
+  <!-- MODAL WINDOW : CONFIGURE CONNECTION -->
+  <div hidden class="modal login">
+    <div class="backdrop"></div>
+    <div class="content shadow">
+      <div class="header">Configure connection</div>
+      <div class="central">
+        <div class="mat-input">
+          <input readonly name="name" type="text" />
+          <span class="bar"></span>
+          <label>Name</label>
+        </div>
+        <div class="mat-input">
+          <input name="host" type="text" />
+          <span class="bar"></span>
+          <label>Host</label>
+        </div>
+        <div class="mat-input">
+          <input name="user" type="text" />
+          <span class="bar"></span>
+          <label>Username</label>
+        </div>
+        <div class="mat-input">
+          <input name="password" type="password" />
+          <span class="bar"></span>
+          <label>Password</label>
+        </div>
+      </div>
+      <div class="footer">
+        <button class="modal-close">Cancel</button>
+        <button class="modal-delete">Delete</button>
+        <button class="modal-connect">Connect</button>
+        <button class="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+  <!-- END OF MODAL WINDOW -->
+
+  <!-- MODAL WINDOW : NEW CONNECTION -->
+  <div hidden class="modal connection">
+    <div class="backdrop"></div>
+    <div class="content shadow">
+      <div class="header">Add new connection</div>
+      <div class="central">
+        <div class="mat-input">
+          <input name="name" type="text" />
+          <span class="bar"></span>
+          <label>Name</label>
+        </div>
+        <div class="mat-input">
+          <input name="host" type="text" />
+          <span class="bar"></span>
+          <label>Host</label>
+        </div>
+        <div class="mat-input">
+          <input name="user" type="text" />
+          <span class="bar"></span>
+          <label>Username</label>
+        </div>
+      </div>
+      <div class="footer"><button class="modal-close">Cancel</button><button class="modal-add">Add</button></div>
+    </div>
+  </div>
+  <!-- END OF MODAL WINDOW -->
+
+  <!-- MODAL WINDOW : CONFIRMATION -->
+  <div hidden class="modal conf">
+      <div class="backdrop"></div>
+      <div class="content shadow">
+        <div class="header">Confirmation</div>
+        <div class="central">Are you sure?</div>
+        <div class="footer">
+          <button class="modal-reject">No</button>
+          <button class="modal-confirm">Yes</button>
+        </div>
+      </div>
+    </div>
+    <!-- END OF MODAL WINDOW -->
+
+  <!-- LOADING -->
+  <div class="loading">
+    <div class="backdrop"></div>
+    <div class="mat-spinner">
+      <svg viewBox="0 0 66 66">
+        <circle cx="33" cy="33" r="23" />
+      </svg>
+    </div>
+  </div>
+  <!-- END OF LOADING -->
+</body>
+
+<script src="/scripts/main.js"></script>
