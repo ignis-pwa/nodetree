@@ -34,6 +34,16 @@ app.get('/api/add_server', function(req, res) {
   res.json('success');
 });
 
+app.get('/api/update_server', function(req, res) {
+  let name = req.query.name;
+  if(!name) throw new Error('Missing parameters');
+  ch._getConf();
+  ch.updateKey(`servers.${name}.host`,req.query.host);
+  ch.updateKey(`servers.${name}.user`,req.query.user);
+  ch.updateKey(`servers.${name}.database`,"");
+  res.json('success');
+});
+
 app.get('/api/remove_server', function(req, res) {
   let name = req.query.name;
   if(!name) throw new Error('Missing parameters');
