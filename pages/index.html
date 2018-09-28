@@ -1,108 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
   <title>nodetree</title>
   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="Description" content="MySQL Query Browser">
   <link rel="stylesheet" href="/styles/default.css">
 </head>
 
-<body>
-  <!-- HEADER       -->
-  <header><span class="blue">node</span><span class="orange">tree</span></header>
-  <!-- TITLE BAR    -->
-  <nav>MySQL connections</nav>
-  <!-- FAB          -->
-  <div class="fab shadow shadow-hover"> + </div>
-  <!-- SESSION LIST -->
-  <div class="box-container"></div>
+<body>This site Requires javascript to be enabled.</body>
 
-  <!-- MODAL WINDOW : CONFIGURE CONNECTION -->
-  <div hidden class="modal login">
-    <div class="backdrop"></div>
-    <div class="content shadow">
-      <div class="header">Configure connection</div>
-      <div class="central">
-        <div class="mat-input">
-          <input readonly name="name" type="text" />
-          <span class="bar"></span>
-          <label>Name</label>
-        </div>
-        <div class="mat-input">
-          <input name="host" type="text" />
-          <span class="bar"></span>
-          <label>Host</label>
-        </div>
-        <div class="mat-input">
-          <input name="user" type="text" />
-          <span class="bar"></span>
-          <label>Username</label>
-        </div>
-        <div class="mat-input">
-          <input name="password" type="password" />
-          <span class="bar"></span>
-          <label>Password</label>
-        </div>
-      </div>
-      <div class="footer">
-        <button class="modal-close">Cancel</button>
-        <button class="modal-delete">Delete</button>
-        <button class="modal-connect">Connect</button>
-        <button class="modal-save">Save</button>
-      </div>
-    </div>
-  </div>
-  <!-- END OF MODAL WINDOW -->
+</html>
 
-  <!-- MODAL WINDOW : NEW CONNECTION -->
-  <div hidden class="modal connection">
-    <div class="backdrop"></div>
-    <div class="content shadow">
-      <div class="header">Add new connection</div>
-      <div class="central">
-        <div class="mat-input">
-          <input name="name" type="text" />
-          <span class="bar"></span>
-          <label>Name</label>
-        </div>
-        <div class="mat-input">
-          <input name="host" type="text" />
-          <span class="bar"></span>
-          <label>Host</label>
-        </div>
-        <div class="mat-input">
-          <input name="user" type="text" />
-          <span class="bar"></span>
-          <label>Username</label>
-        </div>
-      </div>
-      <div class="footer"><button class="modal-close">Cancel</button><button class="modal-add">Add</button></div>
-    </div>
-  </div>
-  <!-- END OF MODAL WINDOW -->
+<script>
+  // CLASSES //
+  class ShowHide {
+    constructor(selector) {
+      this.element = document.querySelector(selector);
+    }
+    /* Remove hidden attribute from element */
+    show() {
+      this.element.hasAttribute('hidden') && this.element.removeAttribute('hidden');
+    }
+    /* Add hidden attribute to element */
+    hide() {
+      this.element.hasAttribute('hidden') || this.element.setAttribute('hidden', '');
+    }
+  }
 
-  <!-- MODAL WINDOW : CONFIRMATION -->
-  <div hidden class="modal conf">
-      <div class="backdrop"></div>
-      <div class="content shadow">
-        <div class="header">Confirmation</div>
-        <div class="central">Are you sure?</div>
-        <div class="footer">
-          <button class="modal-reject">No</button>
-          <button class="modal-confirm">Yes</button>
-        </div>
-      </div>
-    </div>
-    <!-- END OF MODAL WINDOW -->
+  class LoaderController extends ShowHide {
+    constructor(selector) {
+      super(selector);
+    }
+  }
 
-  <!-- LOADING -->
-  <div class="loading">
-    <div class="backdrop"></div>
-    <div class="mat-spinner">
-      <svg viewBox="0 0 66 66">
-        <circle cx="33" cy="33" r="23" />
-      </svg>
-    </div>
-  </div>
-  <!-- END OF LOADING -->
-</body>
+  class ModalController extends ShowHide {
+    constructor(selector, confirmModal = false) {
+      super(selector);
+      this.confirmModal = confirmModal;
+      this.hide();
+    }
+    /* Hide  model box and trigger confirm event */
+    confirm() {
+      let confirmObj = new CustomEvent('confirm', { detail: true });
+      this.element.dispatchEvent(confirmObj);
+      this.hide();
+    }
+    /* Hide model box and trigger reject event */
+    reject() {
+      let confirmObj = new CustomEvent('confirm', { detail: false });
+      this.element.dispatchEvent(confirmObj);
+      this.hide();
+    }
+    /* Clear all inputes within element */
+    clearInputs() {
+      for (let el of this.element.querySelectorAll('input')) {
+        el.value = "";
+        el.dispatchEvent(new Event('change'));
+      }
+    }
+    /* Show model box and listen for close event */
+    confirmPromise() {
+      if (!this.confirmModal) return false;
+      this.show();
+      return new Promise((res, rej) => {
+        this.element.addEventListener('confirm', (e) => {
+          if (e.detail) { res() } else { rej() }
+        }, { once: true })
+      })
+    }
+  }
 
-<script src="/scripts/main.js"></script>
+  class MatInput {
+    constructor(ele) {
+      this.element = ele;
+      this.input = this.element.querySelector('input');
+      this.element.$ = this;
+      this.float();
+      this.input.addEventListener('change', () => { this.float() });
+    }
+    /* Calculate if label should be floated */
+    float() {
+      if (this.input.value) {
+        this.element.classList.add('float');
+      } else {
+        this.element.classList.remove('float');
+      }
+    }
+  }
+
+  class MatToast {
+    constructor(msg, time = 4) {
+      this.toast = document.createElement('div');
+      this.toast.classList.add('mat-toast');
+      this.toast.classList.add('shadow');
+      this.toast.appendChild(document.createTextNode(msg));
+      document.body.appendChild(this.toast);
+      /* add show class to slide toast in */
+      setTimeout(() => {
+        this.toast.classList.add('show');
+      }, 50);
+      /* remove show class to slide toast out */
+      setTimeout(() => {
+        this.toast.classList.remove('show');
+      }, time * 1000 + 350);
+      /* remove toast from the dom */
+      setTimeout(() => {
+        this.toast.remove();
+      }, time * 1000 + 650);
+    }
+  }
+
+  class SimpleStateRouter {
+    constructor() {
+      this.body = document.body;
+      this.stateList = ['connection', 'database'];
+      this.event = new CustomEvent('state-changed');
+      this.req = new XMLHttpRequest();
+      this.body.addEventListener('state-changed', res => { this._getFragment() });
+      this.req.addEventListener('load', res => { this._setFragment(res) });
+
+      this.body.dataset.state || this.setState('connection');
+    }
+    //// PRIVATE ////
+    /* Private method to get fragment */
+    _getFragment() {
+      for (let state of this.stateList) this._unloadScript(`/scripts/${state}.js`);
+      this.req.open("GET", `/fragment/${this.state}`);
+      this.req.send();
+    }
+    /* Private method to load external JS file */
+    _loadScript(url) {
+      const head = document.getElementsByTagName('head')[0];
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = url;
+      head.appendChild(script);
+    }
+    /* Private method to remove external JS file */
+    _unloadScript(url) {
+      for (let tag of document.querySelectorAll(`script`)) tag.getAttribute('src') == url && tag.parentNode.removeChild(tag)
+    }
+    /* Private method to update the dom */
+    _setFragment(res) {
+      document.body.innerHTML = res.srcElement.response;
+      this._loadScript(`/scripts/${this.state}.js`);
+    }
+    //// PUBLIC ////
+    /* Public setter method to update current state */
+    setState(state = "") {
+      if (this.state == state || this.stateList.indexOf(state) == -1) return
+      this.state = state;
+      this.body.dataset.state = this.state;
+      this.body.dispatchEvent(this.event);
+    }
+  }
+
+  const sessionInfo = {
+    server: "",
+    password: ""
+  }
+
+  const stateHandler = new SimpleStateRouter();
+</script>
