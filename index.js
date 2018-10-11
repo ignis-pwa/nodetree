@@ -74,7 +74,6 @@ app.get('/api/update_server', function (req, res) {
   ch._getConf();
   ch.updateKey(`servers.${name}.host`, req.query.host);
   ch.updateKey(`servers.${name}.user`, req.query.user);
-  ch.updateKey(`servers.${name}.database`, "");
   res.json('success');
 });
 
@@ -119,7 +118,7 @@ app.get('/api/databases', function (req, res) {
     if (err) throw err;
   });
 
-  connection.query('SHOW DATABASES', (err,data)=>{
+  connection.query('SHOW DATABASES', (err, data) => {
     res.json(data);
   })
 
@@ -130,7 +129,7 @@ app.get('/api/tables', function (req, res) {
   let connection = mysql.createConnection({
     host: ch.config.get(`servers.${name}.host`),
     user: ch.config.get(`servers.${name}.user`),
-    database: ch.config.get(`servers.${name}.database`),
+    database: req.query.db,
     password: req.query.pass
   });
 
@@ -138,9 +137,30 @@ app.get('/api/tables', function (req, res) {
     if (err) throw err;
   });
 
-  connection.query('SHOW TABLES', (err,data)=>{
+  connection.query('SHOW TABLES', (err, data) => {
     res.json(data);
-  })
+  });
+
+});
+
+app.get('/api/run_query', function (req, res) {
+  let name = req.query.name;
+  let connection = mysql.createConnection({
+    host: ch.config.get(`servers.${name}.host`),
+    user: ch.config.get(`servers.${name}.user`),
+    database: req.query.db,
+    password: req.query.pass
+  });
+
+  connection.connect(err => {
+    if (err) throw err;
+  });
+
+  let query = req.query.qry.toLowerCase().indexOf("limit") >= 0 ? req.query.qry : `${req.query.qry} LIMIT 1000`;
+
+  connection.query(query, (err, data) => {
+    res.json(data);
+  });
 
 });
 

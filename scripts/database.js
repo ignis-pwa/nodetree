@@ -13,9 +13,6 @@
       if (e.target.classList.contains('active')) {
         e.target.classList.remove('active');
         e.target.parentElement.querySelector('.list-inner').innerHTML = "";
-        let Req = new XMLHttpRequest();
-        Req.open("GET", `/api/set_database?name=${sessionInfo.server}&db=`);
-        Req.send();
       } else {
         for (let el of document.querySelectorAll('.list-head')) {
           el.classList.remove('active');
@@ -44,14 +41,19 @@
     listItem.addEventListener('click', e => {
       for (let el of document.querySelectorAll('.list-inner .list-item')) el.classList.remove('active');
       e.target.classList.add('active');
-      console.log(txt);
+      _callData(txt);
     })
 
     return listItem;
   }
 
+  const loader = new LoaderController('.loading');
+  const queryBox = document.querySelector('[name=query]');
+
   // EVENT LISTENERS //
-  document.querySelector('.fab').addEventListener('click', () => { closeSession() });
+  document.querySelector('.fab').addEventListener('click', () => {
+    closeSession()
+  });
 
   // POPULATE DATABASE LIST //
   let sdReq = new XMLHttpRequest();
@@ -60,36 +62,91 @@
   sdReq.send();
 
   // FUNCTIONS //
+  function _callData(e) {
+    sessionInfo.table = e;
+    _getdata()
+  }
+
   function _callTables(e) {
     for (let el of document.querySelectorAll('.list-head')) el.textContent == e && el.classList.add('active');
-    let tabReq = new XMLHttpRequest();
-    tabReq.addEventListener("load", _getTables);
-    tabReq.open("GET", `/api/set_database?name=${sessionInfo.server}&db=${e}`);
-    tabReq.send();
+    sessionInfo.database = e;
+    _getTables()
+  }
+
+  function _getdata() {
+    loader.show();
+    let query = `SELECT * FROM ${sessionInfo.database}.${sessionInfo.table} LIMIT 1000`;
+    queryBox.value = `${query};`;
+    let datReq = new XMLHttpRequest();
+    datReq.addEventListener("load", _setdata);
+    datReq.open("GET", `/api/run_query?name=${sessionInfo.server}&pass=${sessionInfo.password}&db=${sessionInfo.database}&qry=${query}`);
+    datReq.send();
   }
 
   function _getTables() {
-    if (JSON.parse(this.response) != "success") {
-      new MatToast(`Something went wrong`);
-      closeSession();
-      return;
-    }
-
     let oReq = new XMLHttpRequest();
     oReq.addEventListener("load", _setTables);
-    oReq.open("GET", `/api/tables?name=${sessionInfo.server}&pass=${sessionInfo.password}`);
+    oReq.open("GET", `/api/tables?name=${sessionInfo.server}&pass=${sessionInfo.password}&db=${sessionInfo.database}`);
     oReq.send();
   }
 
-  function _initTable() {
+  function _initTable() { 
     let gdReq = new XMLHttpRequest();
     gdReq.addEventListener("load", (res) => {
       const DB = JSON.parse(res.srcElement.response);
       if (!DB) return
+      sessionInfo.database = DB;
       _callTables(DB);
     });
     gdReq.open("GET", `/api/get_database?name=${sessionInfo.server}`);
     gdReq.send();
+  }
+
+  function _setdata() {
+    const res = JSON.parse(this.response);
+    const tableData = document.querySelector('.table-data');
+    const tableBody = document.createElement('div');
+    tableBody.classList.add('table-body');
+
+    const tbDelete = tableData.querySelector('.table-body');
+    tbDelete && tableData.removeChild(tbDelete);
+    tableBody.innerHTML = "";
+    if(!res[0]) {
+      new MatToast(`${sessionInfo.table} has no data to display`);
+      loader.hide();
+      return
+    }
+
+    const tableHeaders = Object.keys(res[0]);
+    
+    let table = document.createElement('table');
+    table.classList.add('mat-table');
+    let thead = document.createElement('thead');
+    let trhead = document.createElement('tr');
+    for (let th of tableHeaders) {
+      let thNode = document.createElement('th');
+      thNode.appendChild(document.createTextNode(th));
+      trhead.appendChild(thNode);
+    }
+
+    thead.appendChild(trhead);
+    table.appendChild(thead);
+
+    let tbody = document.createElement('tbody');
+    for (let row of res) {
+      let trbody = document.createElement('tr');
+      for (let td of tableHeaders) {
+        let tdNode = document.createElement('td');
+        tdNode.appendChild(document.createTextNode(row[td]));
+        trbody.appendChild(tdNode);
+      }
+      tbody.appendChild(trbody);
+    }
+    
+    table.appendChild(tbody);
+    tableBody.appendChild(table);
+    tableData.appendChild(tableBody);
+    loader.hide();
   }
 
   function _setTables() {
@@ -110,9 +167,13 @@
   }
 
   function closeSession() {
-    sessionInfo.server = "";
+    sessionInfo.database = "";
     sessionInfo.password = "";
+    sessionInfo.server = "";
+    sessionInfo.table = "";
     stateHandler.setState('connection');
   }
+
+  loader.hide();
 
 })(window);

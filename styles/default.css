@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css?family=Open+Sans');
+
 :root {
   --header-font-size: 12.5vh;
   --header-height: 25vh;
@@ -40,6 +41,7 @@
     --modal-size: 30;
     --modal-content-space: calc((var(--modal-size) * 1vh) - 152px);
   }
+
   .slim {
     --header-font-size: 60px;
     --header-height: 15vh;
@@ -55,6 +57,7 @@
     --modal-size: 80;
     --modal-radius: 6px;
   }
+
   .conf {
     --modal-size: 40;
     --modal-content-space: calc((var(--modal-size) * 1vh) - 152px);
@@ -185,13 +188,17 @@ nav {
 }
 
 /* TABLE VIEW */
+.table-container {
+  display: flex;
+}
+
 .table-column {
   display: inline-block;
   box-sizing: border-box;
   overflow: auto;
-  width: 250px;
+  min-width: 250px;
   height: calc(100vh - var(--header-height) - var(--nav-height) - var(--table-column-paddingY));
-  border-right: 1px solid var(--theme-devider);
+  border-right: solid 1px var(--theme-devider);
   padding-top: var(--table-column-paddingY);
 }
 
@@ -214,15 +221,32 @@ nav {
   cursor: pointer;
 }
 
-.table-column .list-inner .list-item:hover {
+.table-column .list-inner .list-item:hover,
+.table-column .list-inner .list-item.active {
   background: var(--theme-light);
 }
 
 .table-data {
-  display: inline-block;
-  width: calc(100vw - 250px)l
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
+  flex-grow: 1;
+  max-width: calc(100vw - 250px - 1px);
+  height: calc(100vh - var(--header-height) - var(--nav-height) - var(--table-column-paddingY));
+  padding-top: var(--table-column-paddingY);
 }
 
+.table-data .mat-input {
+  min-height: 82px;
+}
+
+.table-data .mat-input [name=query] {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: -3px;
+  margin-top: 15px;
+  padding-top: 10px;
+}
 
 /* MODAL WINDOW */
 
@@ -294,15 +318,18 @@ nav {
   margin: 20px;
 }
 
-.mat-input input {
+.mat-input input,
+.mat-input textarea {
   font-size: 18px;
   padding: 10px 10px 10px 5px;
   width: 300px;
   border: 1px solid var(--theme-devider);
   border-radius: 4px;
+  resize: none;
 }
 
-.mat-input input:focus {
+.mat-input input:focus,
+.mat-input textarea:focus {
   outline: none;
 }
 
@@ -318,6 +345,7 @@ nav {
 }
 
 .mat-input input:focus~label,
+.mat-input textarea:focus~label,
 .mat-input.float label {
   top: -10px;
   font-size: 14px;
@@ -349,7 +377,9 @@ nav {
 }
 
 .mat-input input:focus~.bar:before,
-.mat-input input:focus~.bar:after {
+.mat-input textarea:focus~.bar:before,
+.mat-input input:focus~.bar:after,
+.mat-input textarea:focus~.bar:after {
   width: 50%;
 }
 
@@ -413,21 +443,62 @@ nav {
   animation: dash var(--spinner-duration) ease-in-out infinite, colors calc(var(--spinner-duration)*4) ease-in-out infinite;
 }
 
+/* MATERIAL TABLE */
+
+.table-body {
+  margin: 0 auto;
+  overflow: auto;
+  max-width: 100%;
+  flex-grow: 1;
+}
+
+table.mat-table {
+  display: table;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+table.mat-table td,
+table.mat-table th{
+  padding: 15px 10px;
+  display: table-cell;
+  text-align: left;
+  vertical-align: middle;
+  border-radius: 2px;
+}
+
+table.mat-table tr:nth-child(even) {
+  background-color: var(--theme-white);
+}
+
+table.mat-table tr:nth-child(odd) {
+  background-color: var(--theme-light);
+}
+
+table.mat-table thead tr:nth-child(even),
+table.mat-table thead tr:nth-child(odd) {
+  background-color: var(--theme-white);
+}
+
 /* ANIMATIONS */
 
 @keyframes colors {
   0% {
     stroke: #4285F4;
   }
+
   25% {
     stroke: #DE3E35;
   }
+
   50% {
     stroke: #F7C223;
   }
+
   75% {
     stroke: #1B9A59;
   }
+
   100% {
     stroke: #4285F4;
   }
@@ -437,6 +508,7 @@ nav {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(270deg);
   }
@@ -446,10 +518,12 @@ nav {
   0% {
     stroke-dashoffset: var(--spinner-offset);
   }
+
   50% {
     stroke-dashoffset: var(--spinner-offset-min);
     transform: rotate(135deg);
   }
+
   100% {
     stroke-dashoffset: var(--spinner-offset);
     transform: rotate(450deg);
