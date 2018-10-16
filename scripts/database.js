@@ -55,6 +55,10 @@
     closeSession()
   });
 
+  queryBox.addEventListener('keydown', e=>{
+    e.keyCode == 13 && e.ctrlKey && _readQuery()
+  })
+
   // POPULATE DATABASE LIST //
   let sdReq = new XMLHttpRequest();
   sdReq.addEventListener("load", _setDataList);
@@ -77,10 +81,7 @@
     loader.show();
     let query = `SELECT * FROM ${sessionInfo.database}.${sessionInfo.table} LIMIT 1000`;
     queryBox.value = `${query};`;
-    let datReq = new XMLHttpRequest();
-    datReq.addEventListener("load", _setdata);
-    datReq.open("GET", `/api/run_query?name=${sessionInfo.server}&pass=${sessionInfo.password}&db=${sessionInfo.database}&qry=${query}`);
-    datReq.send();
+    _readQuery();
   }
 
   function _getTables() {
@@ -100,6 +101,19 @@
     });
     gdReq.open("GET", `/api/get_database?name=${sessionInfo.server}`);
     gdReq.send();
+  }
+
+  function _readQuery() {
+    if(!queryBox.value) return
+    let query = queryBox.value.replace(";","");
+    _runQuery(query);
+  }
+
+  function _runQuery(query) {
+    let datReq = new XMLHttpRequest();
+    datReq.addEventListener("load", _setdata);
+    datReq.open("GET", `/api/run_query?name=${sessionInfo.server}&pass=${sessionInfo.password}&db=${sessionInfo.database}&qry=${query}`);
+    datReq.send();
   }
 
   function _setdata() {
