@@ -290,6 +290,7 @@ nav {
   justify-content: flex-start;
   align-items: center;
   flex-direction: column;
+  overflow: auto;
 }
 
 .modal .content .footer {
