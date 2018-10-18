@@ -46,12 +46,21 @@
       let confirmObj = new CustomEvent('confirm', { detail: true });
       this.element.dispatchEvent(confirmObj);
       this.hide();
+      this.setMessage();
     }
     /* Hide model box and trigger reject event */
     reject() {
       let confirmObj = new CustomEvent('confirm', { detail: false });
       this.element.dispatchEvent(confirmObj);
       this.hide();
+      this.setMessage();
+    }
+    /* Set message within box */
+    setMessage(msg="") {
+      let messageContainer = this.element.querySelector('.message');
+      if(!messageContainer) return;
+
+      messageContainer.innerHTML = msg;
     }
     /* Clear all inputes within element */
     clearInputs() {

@@ -48,6 +48,7 @@
   }
 
   const loader = new LoaderController('.loading');
+  const confirmationB = new ModalController('.modal.conf', true);
   const queryBox = document.querySelector('[name=query]');
 
   // EVENT LISTENERS //
@@ -55,9 +56,13 @@
     closeSession()
   });
 
-  queryBox.addEventListener('keydown', e=>{
+  queryBox.addEventListener('keydown', e => {
     e.keyCode == 13 && e.ctrlKey && _readQuery()
   })
+
+  confirmationB.element.querySelector('.backdrop').addEventListener('click', () => { confirmationB.reject() });
+  confirmationB.element.querySelector('.modal-reject').addEventListener('click', () => { confirmationB.reject() });
+  confirmationB.element.querySelector('.modal-confirm').addEventListener('click', () => { confirmationB.confirm() });
 
   // POPULATE DATABASE LIST //
   let sdReq = new XMLHttpRequest();
@@ -91,7 +96,7 @@
     oReq.send();
   }
 
-  function _initTable() { 
+  function _initTable() {
     let gdReq = new XMLHttpRequest();
     gdReq.addEventListener("load", (res) => {
       const DB = JSON.parse(res.srcElement.response);
@@ -104,19 +109,25 @@
   }
 
   function _readQuery() {
-    if(!queryBox.value) return
-    let query = queryBox.value.replace(";","");
+    if (!queryBox.value) return
+    let query = queryBox.value.replace(";", "");
     _runQuery(query);
   }
 
-  function _runQuery(query) {
+  function _runQuery(query, type = "SELECT") {
     let datReq = new XMLHttpRequest();
-    datReq.addEventListener("load", _setdata);
+    if (type == "SELECT") datReq.addEventListener("load", _setdata, { once: true });
+    if (type == "UPDATE") datReq.addEventListener("load", _readQuery, { once: true });
     datReq.open("GET", `/api/run_query?name=${sessionInfo.server}&pass=${sessionInfo.password}&db=${sessionInfo.database}&qry=${query}`);
     datReq.send();
   }
 
   function _setdata() {
+    if (!this.response) {
+      new MatToast(`There was an error please check your query`);
+      loader.hide();
+      return
+    }
     const res = JSON.parse(this.response);
     const tableData = document.querySelector('.table-data');
     const tableBody = document.createElement('div');
@@ -125,14 +136,14 @@
     const tbDelete = tableData.querySelector('.table-body');
     tbDelete && tableData.removeChild(tbDelete);
     tableBody.innerHTML = "";
-    if(!res[0]) {
-      new MatToast(`${sessionInfo.table} has no data to display`);
+    if (!res[0]) {
+      new MatToast(`No data matches this criteria`);
       loader.hide();
       return
     }
 
     const tableHeaders = Object.keys(res[0]);
-    
+
     let table = document.createElement('table');
     table.classList.add('mat-table');
     let thead = document.createElement('thead');
@@ -153,10 +164,30 @@
         let tdNode = document.createElement('td');
         tdNode.appendChild(document.createTextNode(row[td]));
         trbody.appendChild(tdNode);
+
+        if (queryBox.value.toUpperCase().indexOf('JOIN') >= 0) continue;
+        
+        tdNode.setAttribute('tabindex','0');
+        tdNode.addEventListener('focusin', e => {
+          e.target.setAttribute('contenteditable', "");
+        });
+        tdNode.addEventListener('focusout', e => {
+          e.target.removeAttribute('contenteditable');
+          if(e.target.textContent == row[td]) return;
+          let queryArray = tableHeaders.map(i => `${i} = '${row[i]}'`);
+          let query = `UPDATE ${sessionInfo.database}.${sessionInfo.table} SET ${td} = '${e.target.textContent}' WHERE ${queryArray.join(" AND ")}`;
+          confirmationB.setMessage(`You are about to update the ${td} with this query:<br /><br />${query}`)
+          confirmationB.confirmPromise().then(() => {
+            loader.show();
+            _runQuery(query,"UPDATE");
+          }).catch(() => {
+            _readQuery();
+          })
+        })
       }
       tbody.appendChild(trbody);
     }
-    
+
     table.appendChild(tbody);
     tableBody.appendChild(table);
     tableData.appendChild(tableBody);
