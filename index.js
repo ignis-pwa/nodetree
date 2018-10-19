@@ -5,6 +5,8 @@ const ConfHelper = require('./conf_import');
 const ch = new ConfHelper('servers');
 const mysql = require('mysql');
 
+const port = process.argv.filter(i=>i.includes(':port'))[0] || "80";
+
 //// PAGES ////
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname + '/pages/index.html'));
@@ -164,4 +166,4 @@ app.get('/api/run_query', function (req, res) {
 
 });
 
-app.listen(80);
+app.listen(port.replace(/:port/,""));
