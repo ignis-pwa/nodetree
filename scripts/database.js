@@ -162,7 +162,7 @@
       let trbody = document.createElement('tr');
       for (let td of tableHeaders) {
         let tdNode = document.createElement('td');
-        tdNode.appendChild(document.createTextNode(row[td]));
+        tdNode.appendChild(document.createTextNode(row[td]||""));
         trbody.appendChild(tdNode);
 
         if (queryBox.value.toUpperCase().indexOf('JOIN') >= 0) continue;
