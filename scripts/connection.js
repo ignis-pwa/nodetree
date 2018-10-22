@@ -100,7 +100,7 @@
       oReq.send();
       newConnection.hide();
       newConnection.clearInputs();
-      if(res.srcElement.response == "success") {
+      if(JSON.parse(res.srcElement.response) == "success") {
         new MatToast('Connection Added');
       } else {
         new MatToast('There was a problem adding connection');
@@ -119,7 +119,7 @@
     }
     let oUpd = new XMLHttpRequest();
     oUpd.addEventListener("load", (res) => {
-      if (res.srcElement.response == "true") {
+      if (JSON.parse(res.srcElement.response)) {
         sessionInfo.server = serv;
         sessionInfo.password = pass;
         stateHandler.setState('database');
